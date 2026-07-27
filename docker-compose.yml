@@ -180,7 +180,7 @@ services:
       - FHIR_SERVER_R4=http://${HOST}:${R4_PORT}/hapi-fhir-jpaserver/fhir
       # - FHIR_SERVER_R2_INTERNAL=http://r2:8080/hapi-fhir-jpaserver/fhir
       # - FHIR_SERVER_R3_INTERNAL=http://r3:8080/hapi-fhir-jpaserver/fhir
-      # - FHIR_SERVER_R4_INTERNAL=http://r4:8080/hapi-fhir-jpaserver/fhir
+      - FHIR_SERVER_R4_INTERNAL=http://r4:8080/hapi-fhir-jpaserver/fhir
       - DISABLE_SANDBOXES=1
       - CDS_SANDBOX_URL=https://sandbox.cds-hooks.org
       - PICKER_CONFIG_R2=r2-local
