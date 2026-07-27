@@ -70,6 +70,7 @@ services:
         envsubst < /tmp/hapi.properties.tpl > /config/hapi.properties
         envsubst < /tmp/server.xml > /usr/local/tomcat/conf/server.xml
         catalina.sh run
+    stop_grace_period: 10s
     deploy:
       resources:
         limits:
@@ -82,6 +83,7 @@ services:
     image: docker.io/smartonfhir/fhir-viewer
     ports:
       - "${FHIR_VIEWER_PORT}:80"
+    stop_grace_period: 0s
     deploy:
       replicas: ${FHIR_VIEWER_ENABLED}
 
@@ -106,6 +108,7 @@ services:
         envsubst < /usr/share/nginx/html/config/r3.tpl > /usr/share/nginx/html/config/r3-local.json5
         envsubst < /usr/share/nginx/html/config/r4.tpl > /usr/share/nginx/html/config/r4-local.json5
         nginx -g 'daemon off;'
+    stop_grace_period: 0s
     deploy:
       replicas: ${PATIENT_BROWSER_ENABLED}
 
@@ -137,8 +140,32 @@ services:
       - |
         envsubst < /usr/share/nginx/html/template.html > /usr/share/nginx/html/index.html
         nginx -g 'daemon off;'
+    stop_grace_period: 0s
     deploy:
       replicas: ${CONTROL_PANEL_ENABLED}
+
+  seed: # ----------------------------------------------------------------------
+    container_name: seed
+    image: docker.io/curlimages/curl:latest
+    volumes:
+      - ./seed:/seed:ro
+    depends_on:
+      - r4
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Waiting for HAPI R4..."
+        until curl -sf http://r4:8080/hapi-fhir-jpaserver/fhir/metadata -o /dev/null; do
+          sleep 2
+        done
+        echo "HAPI is up. Posting seed bundle..."
+        curl -sf -X POST http://r4:8080/hapi-fhir-jpaserver/fhir \
+          -H "Content-Type: application/fhir+json" \
+          --data @/seed/patient-bundle.json
+        echo "Seed complete."
+    deploy:
+      replicas: ${SEED_ENABLED:-1}
+    restart: "no"
 
   smart-launcher: # ------------------------------------------------------------
     container_name: launcher
@@ -165,5 +192,6 @@ services:
       - STU4_ENABLED=${R4_ENABLED}
     ports:
       - "${LAUNCHER_PORT}:80"
+    stop_grace_period: 0s
     deploy:
       replicas: ${LAUNCHER_ENABLED}
