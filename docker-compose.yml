@@ -70,7 +70,7 @@ services:
         envsubst < /tmp/hapi.properties.tpl > /config/hapi.properties
         envsubst < /tmp/server.xml > /usr/local/tomcat/conf/server.xml
         catalina.sh run
-    stop_grace_period: 10s
+    stop_grace_period: 0s
     deploy:
       resources:
         limits:
@@ -159,9 +159,9 @@ services:
           sleep 2
         done
         echo "HAPI is up. Posting seed bundle..."
-        curl -sf -X POST http://r4:8080/hapi-fhir-jpaserver/fhir \
+        curl -sfv -X POST http://r4:8080/hapi-fhir-jpaserver/fhir \
           -H "Content-Type: application/fhir+json" \
-          --data @/seed/patient-bundle.json
+          --data @/seed/alex-thompson-5-12y-24h.json
         echo "Seed complete."
     deploy:
       replicas: ${SEED_ENABLED:-1}
