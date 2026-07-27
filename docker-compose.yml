@@ -161,7 +161,7 @@ services:
         echo "HAPI is up. Posting seed bundle..."
         curl -sfv -X POST http://r4:8080/hapi-fhir-jpaserver/fhir \
           -H "Content-Type: application/fhir+json" \
-          --data @/seed/alex-thompson-5-12y-24h.json
+          --data @/seed/pews.json
         echo "Seed complete."
     deploy:
       replicas: ${SEED_ENABLED:-1}
